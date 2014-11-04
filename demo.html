@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+	<meta charset="UTF-8">
+	<title>ooui ReorderWidget and ReorderItemWidget demo</title>
+	<!-- Prevent scaling on mobile devices which cause problems with dialog sizing -->
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<link rel='stylesheet' href="lib/ooui/oojs-ui-apex.css" TYPE="text/css" MEDIA=screen>
+	<link rel='stylesheet' href="ReorderWidget.css" TYPE="text/css" MEDIA=screen>
+</head>
+<body>
+	<script src="lib/jquery.js"></script>
+	<script src="lib/oojs.js"></script>
+	<script src="lib/ooui/oojs-ui.js"></script>
+	<script src="lib/ooui/oojs-ui-apex.js"></script>
+	<script src="lib/ooui/oojs-ui-mediawiki.js"></script>
+	<!--script src="demo.js"></script -->
+	<script src="ReorderItemWidget.js"></script>
+	<script src="ReorderWidget.js"></script>
+	<script>
+		$( function () {
+			var dataKey,
+				items = [],
+				data = {
+					'key1': 'data1',
+					'key2': 'data2',
+					'key3': 'data3',
+					'key4': 'data4',
+					'key5': 'data5'
+				},
+				widget = new ReorderWidget();
+
+			for ( dataKey in data ) {
+				items.push( new ReorderItemWidget( {
+					key: dataKey,
+					name: data[dataKey]
+				} ) );
+			}
+			widget.addItems( items );
+
+			$( '#container' ).append( widget.$element );
+
+		} )
+	</script>
+	<div id='container'></div>
+	<div id='status'></div>
+</body>
+</html>
