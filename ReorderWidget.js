@@ -79,33 +79,16 @@
 	 * @param {jQuery.event} event Event details
 	 */
 	ReorderWidget.prototype.onDrag = function ( event ) {
-		var left, midpoint, $itemOver, side, itemKey,
+		var obj, $optWidget, left, midpoint, $itemOver, side, itemKey,
 			pageX = event.originalEvent.pageX,
 			pageY = event.originalEvent.pageY;
 
-		if ( this.dragover ) {
-			itemKey = this.dragover.getKey();
-			$itemOver  = this.dragover.$element;
-			left = $itemOver.position().left;
-			midpoint = left + $itemOver.width() / 2;
-			$itemOver.animate( {
-				'margin-left': '100px'
-			}, 100 );
-		} else {
-			itemKey = '';
-			$itemOver  = null;
-			left = 0;
-			midpoint = 0;
-		}
-		side = pageX < midpoint ? 'left' : 'right';
+		obj = document.elementFromPoint( pageX, pageY );
+		$optWidget = $( obj ).closest( '.reorderItemWidget' );
 
-		$( '#status').html(
-			'dragover: ' + this.dragover + '<br />' +
-			' pageX: ' + pageX + '<br />' +
-			' left: ' + left + '<br />' +
-			' item: ' + itemKey + '<br />' +
-			' midpoint: ' + midpoint + '<br />' +
-			' side: ' + side
+		$( '#status' ).html(
+			'Dragging over: ' + obj + '<br />' +
+			'OptWidget key: ' + $optWidget.data( 'key' )
 		);
 	};
 

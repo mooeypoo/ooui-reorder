@@ -26,6 +26,7 @@
 		// Initialize and events
 		this.$element
 			.attr( 'draggable', true )
+			.data( 'key', data.key )
 			.addClass( 'reorderItemWidget' )
 			.on( {
 				dragstart: this.onDragStart.bind( this ),
