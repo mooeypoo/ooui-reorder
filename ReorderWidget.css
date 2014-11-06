@@ -1,9 +1,13 @@
 .reorderItemWidget {
 	display: inline-block;
-	
 }
 
 .reorderItemWidget-dragging {
 	background: #666666;
 	opacity: 0.4;
+}
+
+.reorderWidget-placeholder {
+	display: inline-block;
+	width: 200px;
 }

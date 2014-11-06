@@ -11,17 +11,16 @@
 		// Parent constructor
 		ReorderItemWidget.super.call( this, data, config );
 
-		// Add visible placeholder for drop
-/*		this.$placeholder = $( '<div>' )
-			.addClass( 'reorderItemWidget-placeholder' )
-			.hide();
-		this.$element.append( this.$placeholder );
-*/
-		this.$status = $( '#status' );
-
 		// Set up data
 		this.setKey( data.key );
 		this.setName( data.name || data.key );
+
+		// Wrap the element with another div wrapper
+		// so we can have a place to attach the placeholder
+		// on drag
+		this.$element = this.$( '<div>' )
+			.addClass( 'reorderItemWidget-wrapper' )
+			.append( this.$element );
 
 		// Initialize and events
 		this.$element
@@ -59,6 +58,8 @@
 	ReorderItemWidget.prototype.onDragStart = function ( event ) {
 		var dt = event.originalEvent.dataTransfer;
 
+		this.mouseposition = event.originalEvent.pageX;
+
 		this.$element.addClass( 'reorderItemWidget-dragging' );
 		// Define drop effect
 		dt.dropEffect = 'move';
@@ -84,10 +85,6 @@
 	};
 
 	ReorderItemWidget.prototype.onDragLeave = function ( event ) {
-
-		this.$element.animate( {
-			'margin-left': 0
-		} );
 		return false;
 	};
 
@@ -100,11 +97,22 @@
 		this.setLabel( name );
 	};
 
+	ReorderItemWidget.prototype.setIndex = function ( index ) {
+		this.$element.data( 'index', index );
+	};
+	ReorderItemWidget.prototype.getIndex = function ( index ) {
+		return this.$element.data( 'index' );
+	};
+
 	ReorderItemWidget.prototype.getKey = function () {
 		return this.key;
 	};
 	ReorderItemWidget.prototype.getName = function () {
 		return this.name;
+	};
+
+	ReorderItemWidget.prototype.getCorrectedMousePosition = function () {
+
 	};
 
 	/**

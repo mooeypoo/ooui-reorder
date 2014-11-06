@@ -17,24 +17,29 @@
 		this.dragItem = null;
 		this.dragover = null;
 		this.itemKeys = {};
+		this.$placeholder = $( '<div>' )
+			.addClass( 'reorderWidget-placeholder' );
 
 		// Aggregate drag drop events in items
 		this.aggregate( {
 			dragstart: 'itemDragStart',
-			dragover: 'itemDragOver',
+//			dragover: 'itemDragOver',
 			drop: 'itemDrop'
 		} );
-		// Respond to events
+
+		// Item events
 		this.connect( this, {
 			itemDragStart: 'onItemDragStart',
 			itemDragOver: 'onItemDragOver',
 			itemDrop: 'onItemDrop'
 		} );
 
+		// Group events
 		this.$element.on( {
 			drag: $.proxy( this.onDrag, this ),
 			dragover: $.proxy( this.onDragOver, this )
 		} );
+
 		// Add items
 		if ( $.isArray( config.items ) ) {
 			this.addItems( config.items );
@@ -79,17 +84,41 @@
 	 * @param {jQuery.event} event Event details
 	 */
 	ReorderWidget.prototype.onDrag = function ( event ) {
-		var obj, $optWidget, left, midpoint, $itemOver, side, itemKey,
+		var dragOverObj, $optionWidget, itemOffset, itemWidth, itemMidpoint,
+			dragPosition, side, itemIndex,
 			pageX = event.originalEvent.pageX,
-			pageY = event.originalEvent.pageY;
+			pageY = event.originalEvent.pageY,
+			widgetOffset = this.$element.offset();
 
-		obj = document.elementFromPoint( pageX, pageY );
-		$optWidget = $( obj ).closest( '.reorderItemWidget' );
+		// Get the OptionWidget item we are dragging over
+		dragOverObj = this.getElementDocument().elementFromPoint( pageX, pageY );
+		$optionWidget = $( dragOverObj ).closest( '.reorderItemWidget' );
+		itemOffset = $optionWidget.offset();
+		itemKey = $optionWidget.data( 'key' );
 
-		$( '#status' ).html(
-			'Dragging over: ' + obj + '<br />' +
-			'OptWidget key: ' + $optWidget.data( 'key' )
-		);
+		if ( itemOffset && itemKey !== this.dragItem.getKey() ) {
+			// Calculate where the mouse is relative to the item
+			itemWidth = $optionWidget.outerWidth();
+			itemMidpoint = itemOffset.left + itemWidth / 2;
+			dragPosition = pageX - widgetOffset.left;
+
+			// Which side of the item we hover over will dictate
+			// where the placeholder will appear, on the left or
+			// on the right
+			side = dragPosition < itemMidpoint ? 'left' : 'right';
+
+			// Add spacing between objects with the placeholder
+			if ( side ) {
+				this.$placeholder.css( 'float', side );
+				$optionWidget.append( this.$placeholder.show() );
+			} else {
+				this.$placeholder.hide();
+			}
+		} else {
+			// This means the item was dragged outside the widget
+			this.$placeholder.hide();
+		}
+
 	};
 
 	/**
@@ -120,6 +149,7 @@
 	 */
 	ReorderWidget.prototype.unsetDragItem = function () {
 		this.dragItem = null;
+		this.$placeholder.detach().hide();
 	};
 
 	/**
@@ -154,6 +184,7 @@
 	ReorderWidget.prototype.addItems = function ( items, index ) {
 		// Call original
 		OO.ui.GroupElement.prototype.addItems.call( this, items, index );
+		// Let each item know which index it is
 		this.mapItemsToKeys();
 	};
 
