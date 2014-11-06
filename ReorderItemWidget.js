@@ -18,9 +18,9 @@
 		// Wrap the element with another div wrapper
 		// so we can have a place to attach the placeholder
 		// on drag
-		this.$element = this.$( '<div>' )
-			.addClass( 'reorderItemWidget-wrapper' )
-			.append( this.$element );
+//		this.$element = this.$( '<div>' )
+//			.addClass( 'reorderItemWidget-wrapper' )
+//			.append( this.$element );
 
 		// Initialize and events
 		this.$element

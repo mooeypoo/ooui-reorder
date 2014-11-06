@@ -8,6 +8,8 @@
 }
 
 .reorderWidget-placeholder {
-	display: inline-block;
-	width: 200px;
+	position: absolute;
+	display: block;
+	width: 2px;
+	background-color: #2947C2;
 }

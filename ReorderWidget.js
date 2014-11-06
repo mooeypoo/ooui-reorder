@@ -45,7 +45,9 @@
 			this.addItems( config.items );
 		}
 		// Initialize
-		this.$element.addClass( 'reorderWidget' );
+		this.$element
+			.addClass( 'reorderWidget' )
+			.prepend( this.$placeholder );
 	};
 
 	/* Setup */
@@ -64,9 +66,9 @@
 	 * @param {ReorderItemWidget} item Dragged item
 	 */
 	ReorderWidget.prototype.onItemDragStart = function ( item ) {
+		// Set the height of the indicator
+		this.$placeholder.css( 'height', this.items[0].$element.outerHeight() || 20 );
 		this.setDragItem( item );
-		console.log( 'itemDragStart', this.dragItem.getKey() );
-
 	};
 
 	ReorderWidget.prototype.onItemDrop = function ( item ) {
@@ -85,7 +87,7 @@
 	 */
 	ReorderWidget.prototype.onDrag = function ( event ) {
 		var dragOverObj, $optionWidget, itemOffset, itemWidth, itemMidpoint,
-			dragPosition, side, itemIndex,
+			dragPosition, side, itemIndex, sidePosition,
 			pageX = event.originalEvent.pageX,
 			pageY = event.originalEvent.pageY,
 			widgetOffset = this.$element.offset();
@@ -106,17 +108,23 @@
 			// where the placeholder will appear, on the left or
 			// on the right
 			side = dragPosition < itemMidpoint ? 'left' : 'right';
-
+			sidePosition = dragPosition < itemMidpoint ? itemOffset.left : itemOffset.left + itemWidth;
+console.log( sidePosition );
 			// Add spacing between objects with the placeholder
 			if ( side ) {
-				this.$placeholder.css( 'float', side );
-				$optionWidget.append( this.$placeholder.show() );
+				this.$placeholder
+					.css( 'left', sidePosition )
+					.show();
 			} else {
-				this.$placeholder.hide();
+				this.$placeholder
+					.css( 'left', 0 )
+					.hide();
 			}
 		} else {
 			// This means the item was dragged outside the widget
-			this.$placeholder.hide();
+			this.$placeholder
+				.css( 'left', 0 )
+				.hide();
 		}
 
 	};
@@ -149,7 +157,7 @@
 	 */
 	ReorderWidget.prototype.unsetDragItem = function () {
 		this.dragItem = null;
-		this.$placeholder.detach().hide();
+		this.$placeholder.hide();
 	};
 
 	/**
