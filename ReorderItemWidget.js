@@ -11,26 +11,12 @@
 		// Parent constructor
 		ReorderItemWidget.super.call( this, data, config );
 
-		// Set up data
-		this.setKey( data.key );
-		this.setName( data.name || data.key );
-
-		// Wrap the element with another div wrapper
-		// so we can have a place to attach the placeholder
-		// on drag
-//		this.$element = this.$( '<div>' )
-//			.addClass( 'reorderItemWidget-wrapper' )
-//			.append( this.$element );
-
 		// Initialize and events
 		this.$element
 			.attr( 'draggable', true )
-			.data( 'key', data.key )
 			.addClass( 'reorderItemWidget' )
 			.on( {
 				dragstart: this.onDragStart.bind( this ),
-//				dragenter: this.onDragEnter.bind( this ),
-				dragleave: this.onDragLeave.bind( this ),
 				dragover: this.onDragOver.bind( this ),
 				dragend: this.onDragEnd.bind( this ),
 				drop: this.onDrop.bind( this )
@@ -55,76 +41,70 @@
 
 	/* Methods */
 
+	/**
+	 * Respond to dragstart event.
+	 * @param {jQuery.event} event jQuery event
+	 * @return {boolean} True
+	 * @fires dragstart
+	 */
 	ReorderItemWidget.prototype.onDragStart = function ( event ) {
-		var dt = event.originalEvent.dataTransfer;
-
-		this.mouseposition = event.originalEvent.pageX;
-
-		this.$element.addClass( 'reorderItemWidget-dragging' );
 		// Define drop effect
-		dt.dropEffect = 'move';
-		dt.effectAllowed = 'move';
+		event.originalEvent.dataTransfer.dropEffect = 'move';
+		event.originalEvent.dataTransfer.effectAllowed = 'move';
 
+		// Add dragging class
+		this.$element.addClass( 'reorderItemWidget-dragging' );
+
+		// Emit event
 		this.emit( 'dragstart', this );
 		return true;
 	};
 
+	/**
+	 * Respond to dragend event.
+	 * @param {jQuery.event} event jQuery event
+	 * @return {boolean} False
+	 */
 	ReorderItemWidget.prototype.onDragEnd = function ( event ) {
 		this.$element.removeClass( 'reorderItemWidget-dragging' );
-		this.emit( 'dragend', this );
+
+		this.emit( 'dragend' );
+		// Return false and prevent propogation
 		return false;
 	};
 
+	/**
+	 * Handle drop event.
+	 * @param {jQuery.event} event jQuery event
+	 * @fires drop
+	 */
 	ReorderItemWidget.prototype.onDrop = function ( event ) {
 		this.emit( 'drop', this );
 	};
 
-	ReorderItemWidget.prototype.onDragOver = function ( event ) {
-		this.emit( 'dragover', this );
+	/**
+	 * In order for drag/drop to work, the dragover event must
+	 * return false and stop propogation.
+	 * @return {boolean} False
+	 */
+	ReorderItemWidget.prototype.onDragOver = function () {
 		return false;
-	};
-
-	ReorderItemWidget.prototype.onDragLeave = function ( event ) {
-		return false;
-	};
-
-	ReorderItemWidget.prototype.setKey = function ( key ) {
-		this.key = key;
-	};
-
-	ReorderItemWidget.prototype.setName = function ( name ) {
-		this.name = name;
-		this.setLabel( name );
-	};
-
-	ReorderItemWidget.prototype.setIndex = function ( index ) {
-		this.$element.data( 'index', index );
-	};
-	ReorderItemWidget.prototype.getIndex = function ( index ) {
-		return this.$element.data( 'index' );
-	};
-
-	ReorderItemWidget.prototype.getKey = function () {
-		return this.key;
-	};
-	ReorderItemWidget.prototype.getName = function () {
-		return this.name;
-	};
-
-	ReorderItemWidget.prototype.getCorrectedMousePosition = function () {
-
 	};
 
 	/**
-	 * Reset the data in this item
-	 * @param {Object} newData New data information
+	 * Set item index. Store it in the dom so we can access from the widget drag event
+	 * @param {number} Item index
 	 */
-	ReorderItemWidget.prototype.changeData = function ( newData ) {
-		this.setKey( newData.key );
-		this.setName( newData.name || newData.key );
-		// Remove drag class
-		this.$element.removeClass( 'reorderItemWidget-dragging' );
-//		this.$placeholder.hide();
+	ReorderItemWidget.prototype.setIndex = function ( index ) {
+		this.$element.data( 'index', index );
+	};
+
+	/**
+	 * Get item index
+	 * @return {number} Item index
+	 */
+	ReorderItemWidget.prototype.getIndex = function () {
+		return this.$element.data( 'index' );
 	};
 
 }( jQuery ) );

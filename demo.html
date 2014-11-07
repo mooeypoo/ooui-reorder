@@ -22,18 +22,17 @@
 			var dataKey,
 				items = [],
 				data = {
-					'key1': 'data1',
-					'key2': 'data2',
-					'key3': 'data3',
-					'key4': 'data4',
-					'key5': 'data5'
+					'key1': 'label1',
+					'key2': 'label2',
+					'key3': 'label3',
+					'key4': 'label4',
+					'key5': 'label5'
 				},
 				widget = new ReorderWidget();
 
 			for ( dataKey in data ) {
-				items.push( new ReorderItemWidget( {
-					key: dataKey,
-					name: data[dataKey]
+				items.push( new ReorderItemWidget( dataKey, {
+					label: data[dataKey]
 				} ) );
 			}
 			widget.addItems( items );

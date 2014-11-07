@@ -1,6 +1,6 @@
 ( function ( $ ) {
 	/**
-	 * TemplateData Reorder Widget
+	 * Reorder Widget
 	 * @param {Object} config Dialog configuration object
 	 */
 	ReorderWidget = function ReorderWidget( config ) {
@@ -15,23 +15,21 @@
 
 		// Properties
 		this.dragItem = null;
-		this.dragover = null;
 		this.itemKeys = {};
-		this.$placeholder = $( '<div>' )
-			.addClass( 'reorderWidget-placeholder' );
+		this.sideInsertion = '';
 
 		// Aggregate drag drop events in items
 		this.aggregate( {
 			dragstart: 'itemDragStart',
-//			dragover: 'itemDragOver',
+			dragend: 'itemDragEnd',
 			drop: 'itemDrop'
 		} );
 
 		// Item events
 		this.connect( this, {
 			itemDragStart: 'onItemDragStart',
-			itemDragOver: 'onItemDragOver',
-			itemDrop: 'onItemDrop'
+			itemDrop: 'onItemDrop',
+			itemDragEnd: 'onItemDragEnd'
 		} );
 
 		// Group events
@@ -44,7 +42,10 @@
 		if ( $.isArray( config.items ) ) {
 			this.addItems( config.items );
 		}
+
 		// Initialize
+		this.$placeholder = $( '<div>' )
+			.addClass( 'reorderWidget-placeholder' );
 		this.$element
 			.addClass( 'reorderWidget' )
 			.prepend( this.$placeholder );
@@ -71,14 +72,42 @@
 		this.setDragItem( item );
 	};
 
-	ReorderWidget.prototype.onItemDrop = function ( item ) {
-		console.log( 'itemDrop', this.dragItem.getKey(), item.getKey() );
-		this.unsetDragItem();
+	/**
+	 * Respond to item drag end event
+	 */
+	ReorderWidget.prototype.onItemDragEnd = function () {
+		// Remove the placeholder
+		this.$placeholder.hide();
 	};
 
-	ReorderWidget.prototype.onItemDragOver = function ( item ) {
-		console.log( 'dragging over', item.getKey() );
-		this.dragover = item;
+	/**
+	 * Handle drop event and switch the order of the items accordingly
+	 * @param {ReorderItemWidget} item Dropped item
+	 */
+	ReorderWidget.prototype.onItemDrop = function ( item ) {
+		var draggedItem,
+			dragItemIndex = this.dragItem.getIndex(),
+			insertionIndex = item.getIndex();
+
+		this.placeItemAtIndex( this.dragItem.getIndex(), item.getIndex() );
+	};
+
+	/**
+	 * Switch the place of two items
+	 * @param {number} fromIndex [description]
+	 * @param {number} toIndex [description]
+	 */
+	ReorderWidget.prototype.placeItemAtIndex = function ( fromIndex, toIndex ) {
+		var draggedItem = this.items[fromIndex];
+
+		// If the insertion point is 'after', the insertion index
+		// is shifted to the right
+		if ( this.sideInsertion === 'after' ) {
+			toIndex++;
+		}
+
+		// Change the item position
+		this.addItems( [ draggedItem ], toIndex );
 	};
 
 	/**
@@ -96,9 +125,9 @@
 		dragOverObj = this.getElementDocument().elementFromPoint( pageX, pageY );
 		$optionWidget = $( dragOverObj ).closest( '.reorderItemWidget' );
 		itemOffset = $optionWidget.offset();
-		itemKey = $optionWidget.data( 'key' );
+		itemIndex = $optionWidget.data( 'index' );
 
-		if ( itemOffset && itemKey !== this.dragItem.getKey() ) {
+		if ( itemOffset && itemIndex !== this.dragItem.getIndex() ) {
 			// Calculate where the mouse is relative to the item
 			itemWidth = $optionWidget.outerWidth();
 			itemMidpoint = itemOffset.left + itemWidth / 2;
@@ -107,11 +136,18 @@
 			// Which side of the item we hover over will dictate
 			// where the placeholder will appear, on the left or
 			// on the right
-			side = dragPosition < itemMidpoint ? 'left' : 'right';
 			sidePosition = dragPosition < itemMidpoint ? itemOffset.left : itemOffset.left + itemWidth;
-console.log( sidePosition );
-			// Add spacing between objects with the placeholder
-			if ( side ) {
+			// Store whether we are before or after an item to rearrange
+			// Also account for RTL, as this is flipped
+			if ( this.$element.css( 'direction' ) === 'rtl' ) {
+				this.sideInsertion = dragPosition < itemMidpoint ? 'after' : 'before';
+			} else {
+				this.sideInsertion = dragPosition < itemMidpoint ? 'before' : 'after';
+			}
+
+
+			// Add drop indicator between objects
+			if ( this.sideInsertion  ) {
 				this.$placeholder
 					.css( 'left', sidePosition )
 					.show();
@@ -130,21 +166,6 @@ console.log( sidePosition );
 	};
 
 	/**
-	 * Respond to dragover event on the widget
-	 * Note: This is only tiggered if the object is dragged over
-	 *  pieces of the widget that do not include items. If the
-	 *  object is dragged over items, the dragover event is not
-	 *  emitted, and we have to trust the individual items' dragover
-	 *  event instead.
-	 * @param {[type]} event [description]
-	 * @return {[type]} [description]
-	 */
-	ReorderWidget.prototype.onDragOver = function ( event ) {
-		console.log( 'global drag over' );
-		this.dragover = null;
-	};
-
-	/**
 	 * Set a dragged item
 	 * @param {ReorderItemWidget} item Dragged item
 	 */
@@ -158,6 +179,7 @@ console.log( sidePosition );
 	ReorderWidget.prototype.unsetDragItem = function () {
 		this.dragItem = null;
 		this.$placeholder.hide();
+		this.sideInsertion = '';
 	};
 
 	/**
@@ -177,35 +199,16 @@ console.log( sidePosition );
 	};
 
 	/**
-	 * Get the current key order of the items
-	 * @return {string[]} Item keys in order
+	 * Expand the
 	 */
-	ReorderWidget.prototype.getKeyOrder = function () {
-		var i,
-			result = [];
-		for ( i = 0; i < this.items.length; i++ ) {
-			result.push( this.items[i].getKey() );
-		}
-		return result;
-	};
-
 	ReorderWidget.prototype.addItems = function ( items, index ) {
-		// Call original
+		// Parent
 		OO.ui.GroupElement.prototype.addItems.call( this, items, index );
-		// Let each item know which index it is
-		this.mapItemsToKeys();
-	};
 
-	ReorderWidget.prototype.mapItemsToKeys = function () {
-		var i;
-
-		this.itemKeys = {};
+		// Map the index of each object
 		for ( i = 0; i < this.items.length; i++ ) {
-			this.itemKeys[this.items[i].getKey()] = this.items[i];
-		}
+			this.items[i].setIndex( i );
+		};
 	};
 
-	ReorderWidget.prototype.getItemByKey = function ( key ) {
-		return this.itemKeys[key];
-	};
 }( jQuery ) );
